@@ -1,0 +1,26 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.pytest_cache/
+.venv/
+venv/
+.ruff_cache/
+
+# Local state, never part of the project
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm
+config.json
+
+# Anything the tool writes at runtime
+*.ckpt
+*.db
+*.db-wal
+*.db-shm
+phonevault-cache/
+
+# Playwright/browser artefacts
+test-results/
+playwright-report/

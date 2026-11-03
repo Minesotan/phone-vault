@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Phonevault</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">
+    <span class="logo" aria-hidden="true"></span>
+    <div>
+      <h1>Phonevault</h1>
+      <p class="sub" id="repo-line">loading&hellip;</p>
+    </div>
+  </div>
+  <div class="topbar-right">
+    <label class="field inline">
+      <span>Profile</span>
+      <select id="profile-select"></select>
+    </label>
+    <span class="pill" id="device-pill">phone: checking&hellip;</span>
+  </div>
+</header>
+
+<nav class="tabs" role="tablist">
+  <button role="tab" class="tab active" data-tab="overview">Overview</button>
+  <button role="tab" class="tab" data-tab="snapshots">Snapshots</button>
+  <button role="tab" class="tab" data-tab="browse">Browse &amp; restore</button>
+  <button role="tab" class="tab" data-tab="maintenance">Maintenance</button>
+  <button role="tab" class="tab" data-tab="settings">Settings</button>
+</nav>
+
+<main>
+  <!-- OVERVIEW -->
+  <section class="panel active" id="tab-overview">
+    <div class="cards" id="summary-cards"></div>
+
+    <div class="card job-card">
+      <div class="card-head">
+        <h2>Backup</h2>
+        <div class="actions">
+          <label class="check"><input type="checkbox" id="opt-dry-run"> Dry run</label>
+          <label class="check"><input type="checkbox" id="opt-rescan"> Re-read everything</label>
+          <label class="check"><input type="checkbox" id="opt-forget" checked> Apply retention</label>
+          <button class="primary" id="btn-backup">Back up now</button>
+          <button id="btn-pause" hidden>Pause</button>
+        </div>
+      </div>
+      <div id="backup-paths" class="paths"></div>
+      <div id="job-area"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h2>Recent activity</h2></div>
+      <div id="history"></div>
+    </div>
+  </section>
+
+  <!-- SNAPSHOTS -->
+  <section class="panel" id="tab-snapshots">
+    <div class="card">
+      <div class="card-head">
+        <h2>Snapshots</h2>
+        <button id="btn-refresh-snapshots">Refresh</button>
+      </div>
+      <div id="snapshot-table"></div>
+    </div>
+  </section>
+
+  <!-- BROWSE -->
+  <section class="panel" id="tab-browse">
+    <div class="card">
+      <div class="card-head">
+        <h2>Browse a snapshot</h2>
+        <div class="actions">
+          <select id="browse-snapshot"></select>
+          <input type="search" id="browse-search" placeholder="Search file names&hellip;">
+        </div>
+      </div>
+      <div class="crumbs" id="browse-crumbs"></div>
+      <div id="browse-list" class="filelist"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h2>Restore</h2></div>
+      <div class="restore-form">
+        <div id="restore-selection" class="selection">Nothing selected &mdash; the whole snapshot will be restored.</div>
+        <div class="row">
+          <label class="field grow">
+            <span>Destination</span>
+            <input type="text" id="restore-target" placeholder="D:\PhoneRestore">
+          </label>
+          <label class="field">
+            <span>If the file exists</span>
+            <select id="restore-overwrite">
+              <option value="different">Replace if different</option>
+              <option value="always">Always replace</option>
+              <option value="never">Never replace</option>
+            </select>
+          </label>
+        </div>
+        <label class="check"><input type="checkbox" id="restore-to-phone"> Write back to the phone (destination is a path on the device)</label>
+        <div class="row end">
+          <button class="primary" id="btn-restore">Restore</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MAINTENANCE -->
+  <section class="panel" id="tab-maintenance">
+    <div class="card">
+      <div class="card-head"><h2>Retention</h2></div>
+      <p class="hint">Forget drops old snapshots. It frees no space by itself &mdash; prune does that.</p>
+      <div class="grid-keep" id="keep-grid"></div>
+      <div class="row end">
+        <label class="check"><input type="checkbox" id="forget-dry" checked> Dry run</label>
+        <label class="check"><input type="checkbox" id="forget-prune"> Prune afterwards</label>
+        <button id="btn-forget">Apply retention</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h2>Repository</h2></div>
+      <div class="row wrap">
+        <button id="btn-check">Check integrity</button>
+        <button id="btn-check-deep">Deep check (re-hash all data)</button>
+        <button id="btn-prune-dry">Prune (dry run)</button>
+        <button class="danger" id="btn-prune">Prune</button>
+        <button id="btn-unlock">Break stale locks</button>
+      </div>
+      <div id="maint-result"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h2>Repair</h2></div>
+      <p class="hint">Use this if the backup and the NAS have fallen out of step &mdash;
+        after a crash or an interrupted run, or on a new PC. It rebuilds the local
+        index from the NAS and re-creates any missing index entries from the pack
+        files themselves. It never deletes anything unless you ask it to.</p>
+      <div class="row wrap">
+        <button id="btn-repair">Repair</button>
+        <button class="danger" id="btn-repair-discard">Repair and discard unrecoverable</button>
+      </div>
+      <div id="repair-result"></div>
+    </div>
+  </section>
+
+  <!-- SETTINGS -->
+  <section class="panel" id="tab-settings">
+    <div class="card">
+      <div class="card-head">
+        <h2>Profile settings</h2>
+        <button class="primary" id="btn-save-settings">Save</button>
+      </div>
+      <div id="settings-form" class="settings-form"></div>
+      <p class="hint" id="settings-path"></p>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h2>Schedule</h2></div>
+      <p class="hint">Registers a Windows Task Scheduler entry. The phone must be
+        reachable when it fires &mdash; plugged in, or paired over Wi-Fi.</p>
+      <div class="row">
+        <label class="field grow">
+          <span>When</span>
+          <input type="text" id="schedule-spec" placeholder="daily@02:30">
+        </label>
+        <button id="btn-schedule">Save schedule</button>
+        <button id="btn-schedule-off">Turn off</button>
+      </div>
+      <p class="hint">Examples: <code>hourly</code>, <code>daily@02:30</code>,
+        <code>weekly@sun:03:00</code>, <code>monthly@1:04:00</code></p>
+      <div id="schedule-result"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <h2>Devices</h2>
+        <button id="btn-refresh-devices">Refresh</button>
+      </div>
+      <div id="device-list"></div>
+    </div>
+  </section>
+</main>
+
+<div id="toast-stack" class="toast-stack" aria-live="polite"></div>
+<script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,78 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "phonevault"
+version = "0.1.0"
+description = "Deduplicating, versioned backups of a rooted Android phone to a NAS"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT with attribution; see LICENSE" }
+authors = [{ name = "Rod Morabito" }]
+keywords = ["backup", "android", "adb", "deduplication", "nas", "smb"]
+classifiers = [
+  "Environment :: Console",
+  "Intended Audience :: End Users/Desktop",
+  "Programming Language :: Python :: 3",
+  "Topic :: System :: Archiving :: Backup",
+]
+
+# The core runs on the standard library alone, so it also works inside Termux
+# on the phone without a compiler toolchain.
+dependencies = []
+
+[project.optional-dependencies]
+# Talking SMB without the OS mounting the share -- needed in Termux.
+smb = ["smbprotocol>=1.10"]
+# Only for Python builds older than 3.14, which lack compression.zstd.
+zstd = ["zstandard>=0.22"]
+dev = ["pytest>=8", "playwright>=1.40", "ruff>=0.6"]
+
+[project.scripts]
+phonevault = "phonevault.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/Minesotan/phone-vault"
+
+[tool.setuptools.packages.find]
+include = ["phonevault*"]
+
+[tool.setuptools.package-data]
+"phonevault.web" = ["static/*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "SIM", "RUF"]
+ignore = [
+  # A backup must not abort because some peripheral step failed. Reading a
+  # phone means hitting unreadable files, flaky transports and half-written
+  # caches constantly, so several places deliberately catch everything and
+  # degrade instead: an unreadable checkpoint costs a re-read, never data.
+  # Each such site says why in a comment.
+  "BLE001",
+  # subprocess return codes are checked by hand, because adb reports useful
+  # detail on stderr that check=True would throw away.
+  "PLW1510",
+  "E501",  # long lines are caught by the formatter, not the linter
+  # contextlib.suppress reads well but adds a context manager to cleanup
+  # paths that run per file and per chunk; try/except/pass is kept there.
+  "SIM105",
+  # Source.close() and Backend.close() are intentionally optional no-ops, so
+  # a subclass that has nothing to release need not implement them.
+  "B027",
+  # tarfile.open() on a pipe is closed in the enclosing finally; the rule
+  # cannot see that.
+  "SIM115",
+]
+
+[tool.ruff.lint.per-file-ignores]
+# Tests reach into internals on purpose, and fixtures shadow their own names.
+"tests/*" = ["S101", "SLF001", "ARG001"]

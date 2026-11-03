@@ -1,0 +1,5 @@
+# This runs on Windows and on the phone under Termux, so keep line endings
+# normalised in the repository and let each checkout use its own.
+* text=auto eol=lf
+*.ps1 text eol=crlf
+*.bat text eol=crlf
